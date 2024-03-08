@@ -16,14 +16,19 @@
 #include "microbit_v2.h"
 #include "app_timer.h"
 #include "nrfx_timer.h"
+#include "../pwm_sine_tone/main.c"
 //define the timer
 static const nrfx_timer_t TIMER4 = NRFX_TIMER_INSTANCE(0);
-
 //helepr to configure trigger and echo pins on breakout! 
 void main() {
     // Enable timer! 
     // nrfx_timer_t const * const p_instance)
     virtual_timer_init();
+    //set up gpio pins and pwm peripheral for playing audio notes! 
+    gpio_init();
+    pwm_init(); 
+    //set the counter top that dictates sine signal wave! 
+    compute_sine_wave((16000000 / (2 * SAMPLING_FREQUENCY)));
     while(true){
         //nrfx_timer_enable(&TIMER4); 
         // nrf_gpio_cfg_input(ECHO_PIN, NRF_GPIO_PIN_PULLDOWN);
@@ -45,9 +50,9 @@ void main() {
         while (nrf_gpio_pin_read(ECHO_PIN)){
         }
         end_ticks = read_timer(); 
-        elapsed_ticks = end_ticks - start_ticks; 
-        printf("time dur: %ld", (int32_t)(elapsed_ticks));
-        nrf_delay_ms(1000); 
+        elapsed_ticks = (int32_t) end_ticks - start_ticks; 
+       // printf("time duration: %ld\n", elapsed_ticks);
+        playNoteFromTick(elapsed_ticks); 
+        nrf_delay_us(100);
     }
-    
 }
