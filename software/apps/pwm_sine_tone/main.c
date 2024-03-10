@@ -49,7 +49,7 @@ static void pwm_init(void) {
   // Set a countertop value based on sampling frequency and repetitions
   // TODO
   nrfx_pwm_config_t pwm_config = NRFX_PWM_DEFAULT_CONFIG;
-  pwm_config.output_pins[0] = SPEAKER_OUT;
+  pwm_config.output_pins[0] = EDGE_P0;
   pwm_config.output_pins[1] = NRFX_PWM_PIN_NOT_USED;
   pwm_config.output_pins[2] = NRFX_PWM_PIN_NOT_USED;
   pwm_config.output_pins[3] = NRFX_PWM_PIN_NOT_USED;
@@ -132,9 +132,9 @@ static void play_note(uint16_t frequency) {
 //playing note range [C, E] across octaves 4,5,6! 
 static void playNoteFromTick(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
-  float freq_note = (0.4163 * time_diff) + 70.1; 
+  float freq_note = (0.154 * time_diff) + 38.41;
   printf("freq_note: %f Hz", freq_note); 
-  if (freq_note < 1319) {
+  if (freq_note < 600) {
       play_note(freq_note);
   } else {
     play_note(0);
