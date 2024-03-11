@@ -35,7 +35,7 @@ static void gpio_init(void) {
   // Microphone pin MUST be high drive
   nrf_gpio_pin_dir_set(LED_MIC, NRF_GPIO_PIN_DIR_OUTPUT);
   nrf_gpio_cfg(LED_MIC, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
-      NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0H1, NRF_GPIO_PIN_NOSENSE);
+  NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0H1, NRF_GPIO_PIN_NOSENSE);
 
   // Enable microphone
   nrf_gpio_pin_set(LED_MIC);
@@ -126,18 +126,20 @@ static void play_note(uint16_t frequency) {
   // The playback count here is the number of times the entire buffer will repeat
   //    (which doesn't matter if you set the loop flag)
   // TODO
-  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_LOOP);
+  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_STOP);
 }
 //helper to play note based on difference in clock ticks! 
 //playing note range [C, E] across octaves 4,5,6! 
+static void stop_note(){
+  printf("Stopping note!\n");
+  nrfx_pwm_stop(&PWM_INST, false);
+}
 static void playNoteFromTick(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
   float freq_note = (0.154 * time_diff) + 38.41;
-  printf("freq_note: %f Hz", freq_note); 
+  // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
-      play_note(freq_note);
-  } else {
-    play_note(0);
+    play_note(freq_note);
   }
 }
 // int main(void) {
