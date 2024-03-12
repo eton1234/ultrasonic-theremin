@@ -138,30 +138,25 @@ static void stop_note(){
 const float scale_notes[] = {
     // Octave 3
     130.81, // C3
-    138.59, // C#3
     146.83, // D3
-    155.56, // D#3
     164.81, // E3
     174.61, // F3
-    185.00, // F#3
     196.00, // G3
-    207.65, // G#3
     220.00, // A3
-    233.08, // A#3
     246.94, // B3
     // Octave 4
     261.63, // C4
-    277.18, // C#4
-    293.66, // D4
-    311.13, // D#4
-    329.63, // E4
-    349.23, // F4
-    369.99, // F#4
-    392.00, // G4
-    415.30, // G#4
-    440.00, // A4
-    466.16, // A#4
-    493.88  // B4
+    // 277.18, // C#4
+    // 293.66, // D4
+    // 311.13, // D#4
+    // 329.63, // E4
+    // 349.23, // F4
+    // 369.99, // F#4
+    // 392.00, // G4
+    // 415.30, // G#4
+    // 440.00, // A4
+    // 466.16, // A#4
+    // 493.88  // B4
 };
 
 // Number of notes in the scale
@@ -183,7 +178,8 @@ float hash_frequency(float freq) {
 }
 static void playNoteFromTick(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
-  float freq_note = (0.154 * time_diff) + 38.41;
+  // 140/3000 = 0.0466 
+  float freq_note = (0.0466 * time_diff) + 103;
   freq_note = hash_frequency(freq_note);
   // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
