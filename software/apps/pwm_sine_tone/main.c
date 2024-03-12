@@ -15,7 +15,9 @@
 
 // PWM configuration
 static const nrfx_pwm_t PWM_INST = NRFX_PWM_INSTANCE(0);
-
+//last note
+static float last_note = -20;
+static float notes[] = {0,0,0,0,0};
 // Holds a pre-computed sine wave
 #define SINE_BUFFER_SIZE 500
 uint16_t sine_buffer[SINE_BUFFER_SIZE] = {0};
@@ -91,7 +93,6 @@ static void play_note(uint16_t frequency) {
   // determine number of sine values to "step" per played sample
   // units are (sine-values/cycle) * (cycles/second) / (samples/second) = (sine-values/sample)
   float step_size = (float)SINE_BUFFER_SIZE * (float)frequency / (float)SAMPLING_FREQUENCY;
-
   // Fill sample buffer based on frequency
   // Each element in the sample buffer will be an element from the sine_buffer
   // The first should be sine_buffer[0],
@@ -125,12 +126,13 @@ static void play_note(uint16_t frequency) {
   // The playback count here is the number of times the entire buffer will repeat
   //    (which doesn't matter if you set the loop flag)
   // TODO
-  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_STOP);
+  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_LOOP);
 }
 //helper to play note based on difference in clock ticks! 
 //playing note range [C, E] across octaves 4,5,6! 
 static void stop_note(){
   printf("Stopping note!\n");
+  last_note = -20;
   nrfx_pwm_stop(&PWM_INST, false);
 }
 
@@ -178,12 +180,21 @@ float hash_frequency(float freq) {
 }
 static void playNoteFromTick(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
-  // 140/3000 = 0.0466 
-  float freq_note = (0.0466 * time_diff) + 103;
+//   float freq_note = (0.0466 * time_diff) + 100;
+
+  float freq_note = (0.03 * time_diff) + 100;
+  
+
   freq_note = hash_frequency(freq_note);
+  if (last_note < (freq_note + 5) && last_note > (freq_note - 5)) {
+    printf("hi");
+    return;
+  }
   // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
     play_note(freq_note);
+    last_note = freq_note;
+    printf("Playing note: %f Hz", last_note);
   }
   // play_note(440);
 }
