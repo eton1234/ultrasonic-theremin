@@ -27,7 +27,6 @@ uint16_t sine_buffer[SINE_BUFFER_SIZE] = {0};
 uint16_t samples[BUFFER_SIZE] = {0}; // stores PWM duty cycle values
 
 
-
 /*** Initialization & handling code ***/
 
 static void gpio_init(void) {
@@ -35,7 +34,7 @@ static void gpio_init(void) {
   // Microphone pin MUST be high drive
   nrf_gpio_pin_dir_set(LED_MIC, NRF_GPIO_PIN_DIR_OUTPUT);
   nrf_gpio_cfg(LED_MIC, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
-      NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0H1, NRF_GPIO_PIN_NOSENSE);
+  NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0H1, NRF_GPIO_PIN_NOSENSE);
 
   // Enable microphone
   nrf_gpio_pin_set(LED_MIC);
@@ -126,53 +125,69 @@ static void play_note(uint16_t frequency) {
   // The playback count here is the number of times the entire buffer will repeat
   //    (which doesn't matter if you set the loop flag)
   // TODO
-  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_LOOP);
+  nrfx_pwm_simple_playback(&PWM_INST, &pwm_sequence, 1, NRFX_PWM_FLAG_STOP);
 }
 //helper to play note based on difference in clock ticks! 
 //playing note range [C, E] across octaves 4,5,6! 
+static void stop_note(){
+  printf("Stopping note!\n");
+  nrfx_pwm_stop(&PWM_INST, false);
+}
+
+// Define the Western musical scale frequencies
+const float scale_notes[] = {
+    // Octave 3
+    130.81, // C3
+    138.59, // C#3
+    146.83, // D3
+    155.56, // D#3
+    164.81, // E3
+    174.61, // F3
+    185.00, // F#3
+    196.00, // G3
+    207.65, // G#3
+    220.00, // A3
+    233.08, // A#3
+    246.94, // B3
+    // Octave 4
+    261.63, // C4
+    277.18, // C#4
+    293.66, // D4
+    311.13, // D#4
+    329.63, // E4
+    349.23, // F4
+    369.99, // F#4
+    392.00, // G4
+    415.30, // G#4
+    440.00, // A4
+    466.16, // A#4
+    493.88  // B4
+};
+
+// Number of notes in the scale
+const int num_notes = sizeof(scale_notes) / sizeof(scale_notes[0]);
+
+// Hash function to map continuous frequencies to discrete frequencies in the scale
+float hash_frequency(float freq) {
+    // Quantize the input frequency to the nearest note in the scale
+    float min_diff = fabs(scale_notes[0] - freq);
+    float nearest = scale_notes[0];
+    for (int i = 1; i < num_notes; ++i) {
+        float diff = fabs(scale_notes[i] - freq);
+        if (diff < min_diff) {
+            min_diff = diff;
+            nearest = scale_notes[i];
+        }
+    }
+    return nearest;
+}
 static void playNoteFromTick(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
   float freq_note = (0.154 * time_diff) + 38.41;
-  printf("freq_note: %f Hz", freq_note); 
+  freq_note = hash_frequency(freq_note);
+  // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
-      play_note(freq_note);
-  } else {
-    play_note(0);
+    play_note(freq_note);
   }
+  // play_note(440);
 }
-// int main(void) {
-//   printf("Board started!\n");
-
-//   // initialize GPIO
-//   gpio_init();
-
-//   // initialize the PWM
-//   pwm_init();
-
-//   // compute the sine wave values
-//   // You should pass in COUNTERTOP-1 here as the maximum value
-//   compute_sine_wave(COUNTERTOP_CONST - 1); // TODO: put a value in here
-
-//   // Play a A4 tone for one second
-//   // TODO
-//   play_note(440);
-//   nrf_delay_ms(1000);
-//   // Play a C#5 tone for one second
-//   // TODO
-//   play_note(554);
-//   nrf_delay_ms(1000);
-  
-//   // Play a E5 tone for one second
-//   // TODO
-//   play_note(659);
-//   nrf_delay_ms(1000);
-  
-//   // Play a A5 tone for one second
-//   // TODO
-//   play_note(880);
-//   nrf_delay_ms(1000);
-
-//   // Stop all noises
-//   // TODO
-//   nrfx_pwm_stop(&PWM_INST, true);
-// }
