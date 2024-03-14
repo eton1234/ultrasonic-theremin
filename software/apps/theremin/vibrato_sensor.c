@@ -73,22 +73,18 @@ void pres_init(const nrf_twi_mngr_t* i2c) {
   } else {
     printf("connected to the presence sensor\n");
   }
-  printf("ctrl1 %u\n", i2c_reg_read(PRES_ADDR, CTRL1));
-  printf("ctrl2 %u\n", i2c_reg_read(PRES_ADDR, CTRL2));
+
   i2c_reg_write(PRES_ADDR, CTRL1, 0b10011);
   //   //regbooting, config access to 1
   i2c_reg_write(PRES_ADDR, CTRL2, 0b00010000);
   //refer to data sheet. setting the BDU(data update feature) to 1 and ODR set to 2hz
-  //ctrl has presence flag, motion flag, temperature flag
 }
 void joy_init(const nrf_twi_mngr_t* i2c) {
   printf("initializing the joystick sensor\n");
   i2c_manager = i2c;
-  // uint8_t who_am_i = i2c_reg_read(JOYSTICK_ADDR,WHO_AM_I);
-  // //checking to see if properly connected to the presence sensor
 }
 
-//read temp_shock
+//read temp_shock: sensor broke on us
 bool read_temp_shock(void) {
   uint8_t status = i2c_reg_read(PRES_ADDR, STATUS);
   printf("status  %u\n", status);
@@ -106,10 +102,8 @@ float get_vertical()
   uint16_t Y_MSB = i2c_reg_read(JOYSTICK_ADDR, JOYSTICK_Y_MSB);
   uint16_t Y_LSB = i2c_reg_read(JOYSTICK_ADDR, JOYSTICK_Y_LSB);
   uint16_t val = ((Y_MSB<<8) | Y_LSB)>>6;
-  printf("val: %d\n", val);
-  //maybe divide from 0 value and represent in float might cause overflow!
+  //cleaning the input for use in the theremin
   float divided = ((float)val) / 80.0f;
   float converted_num = ((float) divided) - 6.4;
-  printf("converted_num: %f\n", converted_num);
   return converted_num;
 }

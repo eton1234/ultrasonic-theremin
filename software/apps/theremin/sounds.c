@@ -146,17 +146,6 @@ const float scale_notes[] = {
   246.94, // B3
   // Octave 4
   261.63, // C4
-  // 277.18, // C#4
-  // 293.66, // D4
-  // 311.13, // D#4
-  // 329.63, // E4
-  // 349.23, // F4
-  // 369.99, // F#4
-  // 392.00, // G4
-  // 415.30, // G#4
-  // 440.00, // A4
-  // 466.16, // A#4
-  // 493.88  // B4
 };
 
 // Number of notes in the scale
@@ -185,10 +174,8 @@ float tickToFreq(int32_t time_diff){
 void playNoteFromInputs(float freq_note, float offset){
   freq_note = freq_note + offset;
   if (last_note < (freq_note + 5) && last_note > (freq_note - 5)) {
-    printf("hi\n");
     return;
   }
-  // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
     play_note(freq_note);
     last_note = freq_note;

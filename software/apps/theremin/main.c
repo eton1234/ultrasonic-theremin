@@ -4,7 +4,7 @@
 //two distance sensor pins
 #define TRIG_PIN EDGE_P8  // Output pin
 #define ECHO_PIN EDGE_P12 // Input pin
-#define SIG_PIN  EDGE_P2 // signal pin 
+#define SIG_PIN  EDGE_P1 // signal pin 
 
 #include <stdint.h>
 #include <math.h>
@@ -28,23 +28,24 @@ pthread_mutex_t lock; // Declare a global mutex
 
 //define the timer
 static const nrfx_timer_t TIMER4 = NRFX_TIMER_INSTANCE(0);
+
 //initialize play pause variable(initially play as default; global-scoped)
 bool play = true;
 bool lastVal = false;
-// for the joy stick
+
+// joy stick i2c instance
 NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
+
+// ****** dictionary of notes *****///
 char notes[262];
 const int freqs[] = {130,146,164,174,196,220,246,261};
 const char letters[] = {'C','D','E','F','G','A','B','C'};
+
+///********** I2C setup **********///
 void i2c_setup() {
-    ///********** I2C setup **********///
     nrf_drv_twi_config_t i2c_config = NRF_DRV_TWI_DEFAULT_CONFIG;
-    // WARNING!!
-    // These are NOT the correct pins for external I2C communication.
-    // If you are using QWIIC or other external I2C devices, the are
-    // connected to EDGE_P19 (SCL) and EDGE_P20 (SDA).
-    i2c_config.scl = EDGE_P19;
-    i2c_config.sda = EDGE_P20;
+    i2c_config.scl = EDGE_P19; //external SCL
+    i2c_config.sda = EDGE_P20; //external SDA
     i2c_config.frequency = NRF_TWIM_FREQ_100K;
     i2c_config.interrupt_priority = 0;
     //start a manager with the conifg 
@@ -65,7 +66,6 @@ void main() {
     i2c_setup();
     sound_setup();
     // Enable timer! 
-    // nrfx_timer_t const * const p_instance)
     nrfx_gpiote_init();
     led_matrix_init();
     virtual_timer_init();
@@ -75,21 +75,17 @@ void main() {
     nrf_gpio_pin_dir_set(TRIG_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
     nrf_gpio_pin_dir_set(ECHO_PIN, NRF_GPIO_PIN_DIR_INPUT);
     nrf_gpio_pin_dir_set(SIG_PIN, NRF_GPIO_PIN_DIR_INPUT);
-    ///interrupt handler for when sig pin goes high 
-    nrfx_gpiote_in_config_t in_config = NRFX_GPIOTE_CONFIG_IN_SENSE_LOTOHI(true); // high-accuracy mode
-    // nrfx_gpiote_in_init(SIG_PIN, &in_config, gpio_handler);
-    // nrfx_gpiote_in_event_enable(SIG_PIN, true); // enable interrupts
     lastVal = nrf_gpio_pin_read(SIG_PIN);
+
     while(true){
-        //nrfx_timer_enable(&TIMER4); 
-        // nrf_gpio_cfg_input(ECHO_PIN, NRF_GPIO_PIN_PULLDOWN);
-        // nrf_gpio_cfg_output(TRIG_PIN);
         bool curVal = nrf_gpio_pin_read(SIG_PIN);
+        //detecting low-to-high transition (tried interrupts but didn't work well)
         if (curVal && !lastVal ) {
             play = !play;
             stop_note();
         }
         if (play) {
+            //send trigger signal to distance sensor
             nrf_gpio_pin_clear(TRIG_PIN);
             nrf_delay_us(1);
             nrf_gpio_pin_set(TRIG_PIN);
@@ -99,18 +95,23 @@ void main() {
             uint32_t start_ticks, end_ticks, elapsed_ticks;
             while (!nrf_gpio_pin_read(ECHO_PIN)){
             }
+            //time how long the echo pin is high
             start_ticks = read_timer(); 
             while (nrf_gpio_pin_read(ECHO_PIN)){
             }
             end_ticks = read_timer(); 
             elapsed_ticks = (int32_t) end_ticks - start_ticks; 
+
+            //convert ticks to frequency
             float freq = tickToFreq(elapsed_ticks);
-            //printf("freq: %f\n", freq); 
-            //printf("floored freq: %.2f\n", floor(freq)); 
+            //get the note letter index
             int letterIdx = (int) notes[(int)floor(freq)];
+
             //update LED display's state based on note letter! 
             updateLED(letterIdx);
-            //printf("letter %d\n",letterIdx);
+
+            
+            //play note with offset vibrato based off vertical position of the joy stick
             playNoteFromInputs(freq, get_vertical());
         }
         lastVal = curVal; 
