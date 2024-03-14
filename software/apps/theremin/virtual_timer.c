@@ -41,6 +41,3 @@ void virtual_timer_init(void) {
   NRF_TIMER4->TASKS_CLEAR = 1;
   NRF_TIMER4->TASKS_START = 1;
 }
-
-
-

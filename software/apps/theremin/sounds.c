@@ -13,7 +13,6 @@
 
 #include "microbit_v2.h"
 #include "sounds.h"
-
 // PWM configuration
 static const nrfx_pwm_t PWM_INST = NRFX_PWM_INSTANCE(0);
 //last note
@@ -43,7 +42,6 @@ void gpio_init(void) {
 }
 #define COUNTERTOP_CONST 16000000 / (2 * SAMPLING_FREQUENCY)
 void pwm_init(void) {
-
   // Initialize the PWM
   // SPEAKER_OUT is the output pin, mark the others as NRFX_PWM_PIN_NOT_USED
   // Set the clock to 16 MHz
@@ -130,7 +128,7 @@ void play_note(uint16_t frequency) {
 
 //helper to play note based on difference in clock ticks! 
 //playing note range [C, E] across octaves 4,5,6! 
- void stop_note(){
+void stop_note(){
   printf("Stopping note!\n");
   last_note = -20;
   nrfx_pwm_stop(&PWM_INST, false);
@@ -178,22 +176,24 @@ float hash_frequency(float freq) {
   }
   return nearest;
 }
-
-void playNoteFromTick(int32_t time_diff){
+float tickToFreq(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
   //   float freq_note = (0.0466 * time_diff) + 100;
   float freq_note = (0.03 * time_diff) + 100;
-  
+  return freq_note;
+}
+void playNoteFromInputs(float freq_note, float offset){
   freq_note = hash_frequency(freq_note);
+  freq_note = freq_note + offset;
   if (last_note < (freq_note + 5) && last_note > (freq_note - 5)) {
-    printf("hi");
+    printf("hi\n");
     return;
   }
   // printf("freq_note: %f Hz", freq_note); 
   if (freq_note < 600) {
     play_note(freq_note);
     last_note = freq_note;
-    printf("Playing note: %f Hz", last_note);
+    printf("Playing note: %f Hz\n", last_note);
   }
   // play_note(440);
 }

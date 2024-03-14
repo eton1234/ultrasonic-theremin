@@ -20,27 +20,47 @@
 #include "sounds.h"
 #include "nrfx_gpiote.h"
 #include "pthread.h"
+#include "vibrato_sensor.h"
+#include "nrf_twi_mngr.h"
 pthread_mutex_t lock; // Declare a global mutex
 
 //define the timer
 static const nrfx_timer_t TIMER4 = NRFX_TIMER_INSTANCE(0);
 //initialize play pause variable(initially play as default; global-scoped)
 bool play = true;
-//helepr to configure trigger and echo pins on breakout! 
-void gpio_handler() {
-    printf("Interrupt triggered value of play, %d \n", play);
-    stop_note();
-    play = !play;
-}
 bool lastVal = false;
+// for the joy stick
+NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
+
+void i2c_setup() {
+    ///********** I2C setup **********///
+    nrf_drv_twi_config_t i2c_config = NRF_DRV_TWI_DEFAULT_CONFIG;
+    
+    // WARNING!!
+    // These are NOT the correct pins for external I2C communication.
+    // If you are using QWIIC or other external I2C devices, the are
+    // connected to EDGE_P19 (SCL) and EDGE_P20 (SDA).
+    i2c_config.scl = EDGE_P19;
+    i2c_config.sda = EDGE_P20;
+    i2c_config.frequency = NRF_TWIM_FREQ_100K;
+    i2c_config.interrupt_priority = 0;
+    //start a manager with the conifg 
+    nrf_twi_mngr_init(&twi_mngr_instance, &i2c_config);
+    joy_init(&twi_mngr_instance);
+}
+void sound_setup() {
+    //set up gpio pins and pwm peripheral for playing audio notes! 
+
+    gpio_init();
+    pwm_init(); 
+}
 void main() {
+    i2c_setup();
+    sound_setup();
     // Enable timer! 
     // nrfx_timer_t const * const p_instance)
     nrfx_gpiote_init();
     virtual_timer_init();
-    //set up gpio pins and pwm peripheral for playing audio notes! 
-    gpio_init();
-    pwm_init(); 
     //set the counter top that dictates sine signal wave! 
     compute_sine_wave((16000000 / (2 * SAMPLING_FREQUENCY)));
     //configure gpio pins
@@ -76,7 +96,7 @@ void main() {
             }
             end_ticks = read_timer(); 
             elapsed_ticks = (int32_t) end_ticks - start_ticks; 
-            playNoteFromTick(elapsed_ticks); 
+            playNoteFromInputs(tickToFreq(elapsed_ticks), get_vertical());
         }
         lastVal = curVal; 
     }

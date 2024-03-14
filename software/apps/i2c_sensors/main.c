@@ -11,7 +11,7 @@
 #include "nrf_twi_mngr.h"
 
 #include "microbit_v2.h"
-#include "lsm303agr.h"
+#include "vibrato_sensor.h"
 // Global variables
 NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
 
@@ -31,12 +31,12 @@ int main(void) {
   i2c_config.interrupt_priority = 0;
   //start a manager with the conifg 
   nrf_twi_mngr_init(&twi_mngr_instance, &i2c_config);
-  pres_init(&twi_mngr_instance); 
-
+  joy_init(&twi_mngr_instance);
   while (1) {
+    printf("Reading from accelerometer/magnetometer\n");
     // Don't put any code in here. Instead put periodic code in a callback using a timer.
- 
-    nrf_delay_ms(1000);
+    get_vertical();
+    nrf_delay_ms(300);
   }
 }
 

@@ -4,4 +4,5 @@
 void pwm_init(void);
 void gpio_init(void);
 void stop_note(void);
-void playNoteFromTick(int32_t time_diff);
+void playNoteFromInputs(float note, float offset);
+float tickToFreq(int32_t tick);
