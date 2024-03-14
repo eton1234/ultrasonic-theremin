@@ -180,10 +180,9 @@ float tickToFreq(int32_t time_diff){
   //Eq: freq_note = 0.4163 * Clock_Tick + 70.1; 
   //   float freq_note = (0.0466 * time_diff) + 100;
   float freq_note = (0.03 * time_diff) + 100;
-  return freq_note;
+  return hash_frequency(freq_note);
 }
 void playNoteFromInputs(float freq_note, float offset){
-  freq_note = hash_frequency(freq_note);
   freq_note = freq_note + offset;
   if (last_note < (freq_note + 5) && last_note > (freq_note - 5)) {
     printf("hi\n");

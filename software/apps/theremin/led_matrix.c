@@ -21,7 +21,7 @@ int curRow = 0;
 bool led_states[5][5] = {false};
 uint32_t rowleds[] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t colleds[]  = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5}; 
-/*Part 2's callback function 
+/*
 //takes in flag variable indicating whether we should set columns on high! 
 void part2_cb(void){
   //turn col 1 and 5 of row 1 of matrix off! 
@@ -35,28 +35,8 @@ void part2_cb(void){
      nrf_gpio_pin_clear(LED_COL5);
   }
   shouldSet = !shouldSet; 
-}*/
+} */
 //Part 3's callback! 
-void displayLED(){
-  //clean up before displaying!
-  nrf_gpio_pin_write(rowleds[curRow], 0);
-  for (size_t i = 0; i < 5; i++) {
-     nrf_gpio_pin_write(colleds[i], 1); 
-  }
-  
-}
-
-
-void displayLED(){
-  //clean up before displaying!
-  nrf_gpio_pin_write(rowleds[curRow], 0);
-  for (size_t i = 0; i < 5; i++) {
-     nrf_gpio_pin_write(colleds[i], 1); 
-  }
-  
-}
-
-
 void part3_cb(void){
   //Invalidate previous row and clear colss(set corresponding column pins back to high)! 
   //1)Set cur row to low! 
@@ -64,9 +44,7 @@ void part3_cb(void){
   for (size_t i = 0; i < 5; i++) {
      nrf_gpio_pin_write(colleds[i], 1); 
   }
- 
-
- //next row 
+  //next row 
   curRow = (curRow + 1) % 5;
   //2) set active row high! 
   nrf_gpio_pin_write(rowleds[curRow], 1); 
@@ -77,8 +55,6 @@ void part3_cb(void){
     }
   }
 }
-
-
 
 //Part 4 helper function to update led states boolean matrix based off font 2-d matrix! 
 //It will take in the letterIndex corresponding to letter we want to display! 
@@ -143,18 +119,18 @@ void readText(char* text){
 //2-d matrix led_states to reflect current char and then increase the char index so 
 //next call to callback will update led_states for next corresponding char! 
 void part5_cb(){
-  if(curInput){
-    //get current character within cur input text! 
-    char curChar = curInput[currentCharIndex];
-    printf("cur char: %s", curChar); 
-    //get the current char's ascii encoding! 
-    int curLetterIndex = (int) curChar; 
-    printf("curLetter ascii val: %d", curLetterIndex); 
-    //call updateLED helper to reflect current character's LED pattern! 
-    updateLED(curLetterIndex);
-    //and then increment cur char index to next char! 
-    currentCharIndex++;
-  }
+    if(curInput){
+      //get current character within cur input text! 
+      char curChar = curInput[currentCharIndex];
+      printf("cur char: %s", curChar); 
+      //get the current char's ascii encoding! 
+      int curLetterIndex = (int) curChar; 
+      printf("curLetter ascii val: %d", curLetterIndex); 
+      //call updateLED helper to reflect current character's LED pattern! 
+      updateLED(curLetterIndex);
+      //and then increment cur char index to next char! 
+      currentCharIndex++;
+    }
 }
 
 void led_matrix_init(void) {
@@ -207,11 +183,12 @@ void led_matrix_init(void) {
   //initialize timer module! 
   app_timer_init();
   //might need another timer to periodically switch characters for curText!
-  //app_timer_create(&last_timer, APP_TIMER_MODE_REPEATED, part5_cb);
+  // app_timer_create(&last_timer, APP_TIMER_MODE_REPEATED, part5_cb);
   //create a timer to display led pattern for single current letter! 
   app_timer_create(&part2_timer, APP_TIMER_MODE_REPEATED, part3_cb);
   //start the sample timer! 
   //switch char every 1 sec?
+  //app_timer_start(last_timer, 32768, NULL);
   app_timer_start(part2_timer, 100, NULL); 
   // set default state for the LED display (Step 3 and onwards)
 }

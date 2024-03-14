@@ -2,11 +2,12 @@
 //and send to trigger pin on the distance sensor! 
 
 //two distance sensor pins
-#define TRIG_PIN EDGE_P7  // Output pin
-#define ECHO_PIN EDGE_P8 // Input pin
-#define SIG_PIN  EDGE_P9 //signal pin 
+#define TRIG_PIN EDGE_P8  // Output pin
+#define ECHO_PIN EDGE_P12 // Input pin
+#define SIG_PIN  EDGE_P2 // signal pin 
 
 #include <stdint.h>
+#include <math.h>
 #include "time.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
@@ -22,6 +23,7 @@
 #include "pthread.h"
 #include "vibrato_sensor.h"
 #include "nrf_twi_mngr.h"
+#include "led_matrix.h"
 pthread_mutex_t lock; // Declare a global mutex
 
 //define the timer
@@ -31,11 +33,12 @@ bool play = true;
 bool lastVal = false;
 // for the joy stick
 NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
-
+char notes[262];
+const int freqs[] = {130,146,164,174,196,220,246,261};
+const char letters[] = {'C','D','E','F','G','A','B','C'};
 void i2c_setup() {
     ///********** I2C setup **********///
     nrf_drv_twi_config_t i2c_config = NRF_DRV_TWI_DEFAULT_CONFIG;
-    
     // WARNING!!
     // These are NOT the correct pins for external I2C communication.
     // If you are using QWIIC or other external I2C devices, the are
@@ -50,16 +53,21 @@ void i2c_setup() {
 }
 void sound_setup() {
     //set up gpio pins and pwm peripheral for playing audio notes! 
-
     gpio_init();
     pwm_init(); 
 }
+
 void main() {
+    //initializing notes dictionary
+    for(int i = 0; i < sizeof(freqs)/sizeof(freqs[0]); i++) {
+        notes[freqs[i]] = letters[i];
+    }
     i2c_setup();
     sound_setup();
     // Enable timer! 
     // nrfx_timer_t const * const p_instance)
     nrfx_gpiote_init();
+    led_matrix_init();
     virtual_timer_init();
     //set the counter top that dictates sine signal wave! 
     compute_sine_wave((16000000 / (2 * SAMPLING_FREQUENCY)));
@@ -96,7 +104,14 @@ void main() {
             }
             end_ticks = read_timer(); 
             elapsed_ticks = (int32_t) end_ticks - start_ticks; 
-            playNoteFromInputs(tickToFreq(elapsed_ticks), get_vertical());
+            float freq = tickToFreq(elapsed_ticks);
+            //printf("freq: %f\n", freq); 
+            //printf("floored freq: %.2f\n", floor(freq)); 
+            int letterIdx = (int) notes[(int)floor(freq)];
+            //update LED display's state based on note letter! 
+            updateLED(letterIdx);
+            //printf("letter %d\n",letterIdx);
+            playNoteFromInputs(freq, get_vertical());
         }
         lastVal = curVal; 
     }
