@@ -20,14 +20,20 @@ static const nrf_twi_mngr_t* i2c_manager = NULL;
 //
 // returns 8-bit read value
 static uint8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr) {
-  uint8_t rx_buf = 0;
+  static uint8_t rx_buf;
+  printf("i2c_addr %u\n", i2c_addr);
+  printf("i2c_addr adjusted %u\n", (i2c_addr << 1) | 0);
+  printf("reg addr: %u\n", reg_addr); 
   nrf_twi_mngr_transfer_t write = NRF_TWI_MNGR_WRITE(i2c_addr, &reg_addr, 1, NRF_TWI_MNGR_NO_STOP); 
+  printf("hi trying to read");
   nrf_twi_mngr_transfer_t read= NRF_TWI_MNGR_READ(i2c_addr, &rx_buf, 1, 0);
   nrf_twi_mngr_transfer_t const read_transfer[] = {
     write,
     read
   };
+  printf("before perform...\n"); 
   ret_code_t result = nrf_twi_mngr_perform(i2c_manager, NULL, read_transfer, 2, NULL);
+  printf("after perform...\n"); 
   if (result != NRF_SUCCESS) {
     // Likely error codes:
     //  NRF_ERROR_INTERNAL            (0x0003) - something is wrong with the driver itself
@@ -40,7 +46,6 @@ static uint8_t i2c_reg_read(uint8_t i2c_addr, uint8_t reg_addr) {
   }
   return rx_buf;
 }
-
 // Helper function to perform a 1-byte I2C write of a given register
 //
 // i2c_addr - address of the device to write to
@@ -57,11 +62,15 @@ static void i2c_reg_write(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data) {
 // Initialize and configure the LSM303AGR accelerometer/magnetometer
 //
 // i2c - pointer to already initialized and enabled twim instance
+void pres_init(const nrf_twi_mngr_t* i2c) {
+  printf("hi \n");
+  i2c_manager = i2c;
+  uint8_t who_am_i = i2c_reg_read(PRES_ADDR,0x0F);
+}
+
 void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   i2c_manager = i2c;
-
   // ---Initialize Accelerometer---
-
   // Reboot acclerometer
   i2c_reg_write(LSM303AGR_ACC_ADDRESS, CTRL_REG5_A, 0x80);
   nrf_delay_ms(100); // needs delay to wait for reboot
@@ -131,7 +140,6 @@ lsm303agr_measurement_t lsm303agr_read_accelerometer(void) {
   printf("accelerometer reading: %f, %f, %f\n", measurement.x_axis,measurement.y_axis, measurement.z_axis); 
   return measurement;
 }
-
 
 lsm303agr_measurement_t lsm303agr_read_magnetometer(void) {
   //TODO: implement me

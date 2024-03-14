@@ -7,7 +7,7 @@
 // Chip addresses for accelerometer and magnetometer
 static const uint8_t LSM303AGR_ACC_ADDRESS = 0x19;
 static const uint8_t LSM303AGR_MAG_ADDRESS = 0x1E;
-
+static const uint8_t PRES_ADDR = 0x5A;
 // Measurement data type
 typedef struct {
   float x_axis;
@@ -57,6 +57,10 @@ typedef enum {
   ACT_DUR_A = 0x3F,
 } lsm303agr_acc_reg_t;
 
+//presence sensor register addresses(subaddresses)
+typedef enum {
+  WHO_AM_I = 0x0F,
+} pres_reg_t; 
 // Register definitions for magnetometer
 typedef enum {
   OFFSET_X_REG_L_M = 0x45,

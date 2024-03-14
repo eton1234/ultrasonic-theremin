@@ -79,6 +79,5 @@ void main() {
             playNoteFromTick(elapsed_ticks); 
         }
         lastVal = curVal; 
-        printf("main");
     }
 }
