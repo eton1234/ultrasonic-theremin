@@ -17,7 +17,7 @@
 #include "microbit_v2.h"
 #include "app_timer.h"
 #include "nrfx_timer.h"
-#include "../pwm_sine_tone/main.c"
+#include "sounds.h"
 #include "nrfx_gpiote.h"
 #include "pthread.h"
 pthread_mutex_t lock; // Declare a global mutex
