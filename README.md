@@ -1,14 +1,14 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/8uZ8sYl3)
 # Northwestern Micro:bit v2 starter code + implemented driver code for an ultrasonic theremin
 
-For Northwestern course CE346 based on Micro:bit v2.
+Built a theremin which uses ultrasonic sensors to determine pitch rather than electromagnetic fields. 
+
+Wrote driver code for interfacing with a speaker, ultrasonic sensor, joystick, capacitive touch sensor, and 3 x 3 LED display. Some of which are programmed with event-driven architectures. 
 
 This repository has applications and board initialization that connects to the
 build system provided by [nrf52x-base](https://github.com/lab11/nrf52x-base).
 
-Wrote driver code for interfacing with a speaker, ultrasonic sensor, joystick, and 3 x 3 LED display. Some of which are programmed with event-driven architecture. 
 
-The actual instrument is implemented in a blocking syncrhonous loop for simplicity
 
 
 
